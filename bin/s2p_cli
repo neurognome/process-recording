@@ -8,13 +8,13 @@ from datetime import datetime
 import yaml
 from suite2p import run_s2p
 
-sys.path.append('/home/will/code/holofun')
+sys.path.append('/home/kevinksit/code/process-recording')
 
 from holofun.si_tiff import SItiffCore
 import s2p_ops
 
-TIFF_BASE = '/mnt/data2/experiments'
-RESULT_BASE = '/mnt/localdata'
+TIFF_BASE = '/mnt/data'
+RESULT_BASE = '/mnt/data'
 
 ops_to_use = 'default_ops'
 
@@ -105,7 +105,7 @@ dt = datetime.now().strftime("%Y%m%d_%H%M%S")
 db_save_path = '__'.join([date, mouse, 'suite2p', dt])+'.yml'
 
 save_locs = [
-    Path('/mnt/localdata/db', db_save_path),
+    Path('/mnt/data/db', db_save_path),
     # Path('/mnt/synapse/db/suite2p')
 ]
 for sv in save_locs:

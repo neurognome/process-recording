@@ -1,4 +1,4 @@
-name: analysis
+name: process-recording
 channels: 
 # running defaults ahead of forge will likely get you mkl (on windows)
  - conda-forge
