@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
-DEST='figure ground'
-
+DEST='retinotopy'
 eval "$(conda shell.bash hook)"
 
-conda activate analysis
+conda activate process-recording
 echo "First, moving files..."
 #python ~/holofun/scripts/datamover_cli.py $1 $2
 movedata $1 $2

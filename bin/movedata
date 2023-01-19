@@ -19,7 +19,7 @@ else:
     rt = remote_root_win
 
 # remote server location
-remote = rt+'kevin/raw-tiffs'
+remote = rt+'kevin'
 
 # daq file loc
 daq_loc = rt+'setupdaq'
@@ -28,7 +28,7 @@ daq_loc = rt+'setupdaq'
 vis_loc = rt+'stimdata'
 
 # new vis stim data loc
-vis_loc_new = rt+'will/pt data'
+vis_loc_new = rt+'kevin/pt data'
 
 # local destination
 if platform.system() == 'Linux':
@@ -48,7 +48,7 @@ parser.add_argument('--visloc', help='vis stim file location', default=vis_loc, 
 parser.add_argument('--dest', help='destination folder', default=destination, dest='destination')
 args = parser.parse_args()
 
-for k,v in vars(args).items()
+for k,v in vars(args).items():
     locals()[k] = v
     
 mouse = args.mouse
