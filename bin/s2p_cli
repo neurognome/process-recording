@@ -8,7 +8,7 @@ from datetime import datetime
 import yaml
 from suite2p import run_s2p
 
-sys.path.append('/home/kevinksit/code/process-recording')
+sys.path.append('/home/kevinsit/code/process-recording')
 
 from holofun.si_tiff import SItiffCore
 import s2p_ops
@@ -17,7 +17,6 @@ TIFF_BASE = '/mnt/data/raw-tiffs'
 RESULT_BASE = '/mnt/data/processed'
 
 ops_to_use = 'gcamp8m'
-
 ##--- handle args ---##
 parser = argparse.ArgumentParser(description='Run Suite2p!')
 parser.add_argument('mouse', type=str)

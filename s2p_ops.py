@@ -53,8 +53,8 @@ gcamp8m  = {
     
     # registration
     'do_registration': True, # force re-registration
-    'keep_movie_raw': True, # must be true for 2 step reg
-    'two_step_registration': True,
+    'keep_movie_raw': False, # must be true for 2 step reg
+    'two_step_registration': False,
     'nimg_init': 800, # subsampled frames for finding reference image
     'batch_size': 500, #2000, # number of frames per batch, default=500
     'align_by_chan': 1, # 1-based, use 2 for tdT
