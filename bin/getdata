@@ -15,4 +15,4 @@ conda deactivate
 echo "All done, now to suite2p..."
 
 conda activate suite2p
-python ~/code/holofun/bin/s2p_cli $1 $2 DEST
+python ~/code/process-recording/bin/s2p_cli $1 $2 DEST
