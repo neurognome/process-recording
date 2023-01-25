@@ -19,7 +19,7 @@ else:
     rt = remote_root_win
 
 # remote server location
-remote = rt+'kevin'
+remote = rt+'kevin/raw'
 
 # daq file loc
 daq_loc = rt+'setupdaq'
@@ -32,7 +32,7 @@ vis_loc_new = rt+'kevin/pt data'
 
 # local destination
 if platform.system() == 'Linux':
-    destination = '/mnt/data/raw-tiffs'
+    destination = '/mnt/data/raw'
 else:
     destination = 'f:/experiments'
 
@@ -61,7 +61,7 @@ if not src.exists():
 ###---- begin moving files ----###
 dst = Path(destination, mouse, date)
 daq_loc = Path(daq_loc)
-vis_loc = Path(vis_loc, date[2:], mouse)
+vis_loc = Path(vis_loc, date, mouse) # same as before, i think date format is different so no need to do [2:]
 vis_loc_new = Path(vis_loc_new)
 
 # make the direction locally if it doesn't exist for that mouse
@@ -101,7 +101,7 @@ for i,item in enumerate(root_folders):
         
 # download daq file, download multiple if they exist for the same day
 print('Searching for DAQ file...')
-daq_fname = date[2:] + '*'
+daq_fname = date + '*' # I think will names it as 2023 vs 23, so used to be date[2:], but not anymore
 daq_file = list(daq_loc.glob(daq_fname))
 if len(daq_file) == 0:
     print('No DAQ file found, skipping.')

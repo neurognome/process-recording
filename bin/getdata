@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-DEST='retinotopy'
 eval "$(conda shell.bash hook)"
 
 conda activate process-recording
@@ -15,4 +14,4 @@ conda deactivate
 echo "All done, now to suite2p..."
 
 conda activate suite2p
-python ~/code/process-recording/bin/s2p_cli $1 $2 DEST
+python ~/code/process-recording/bin/s2p_cli $1 $2 $3

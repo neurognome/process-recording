@@ -13,7 +13,7 @@ sys.path.append('/home/kevinsit/code/process-recording')
 from holofun.si_tiff import SItiffCore
 import s2p_ops
 
-TIFF_BASE = '/mnt/data/raw-tiffs'
+TIFF_BASE = '/mnt/data/raw'
 RESULT_BASE = '/mnt/data/processed'
 
 ops_to_use = 'gcamp8m'
@@ -104,7 +104,7 @@ dt = datetime.now().strftime("%Y%m%d_%H%M%S")
 db_save_path = '__'.join([date, mouse, 'suite2p', dt])+'.yml'
 
 save_locs = [
-    Path('/mnt/data/db', db_save_path),
+    Path('/mnt/data/processed/db', db_save_path),
     # Path('/mnt/synapse/db/suite2p')
 ]
 for sv in save_locs:

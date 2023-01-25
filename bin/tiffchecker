@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 SZ_THRESHOLD_MB = 10
 BASE_PATH_WIN = 'f:/experiments'
-BASE_PATH_WSL = '/mnt/data/raw-tiffs'
+BASE_PATH_WSL = '/mnt/data/raw'
 
 def check_tiffs(search_path: Path, sz_threshold_mb):
     sz_threshold = sz_threshold_mb * 1024 * 1024
