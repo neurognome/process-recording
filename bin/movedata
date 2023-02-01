@@ -28,7 +28,7 @@ daq_loc = rt+'setupdaq'
 vis_loc = rt+'stimdata'
 
 # new vis stim data loc
-vis_loc_new = rt+'kevin/pt data'
+vis_loc_new = rt+'kevin/pt-data'
 
 # local destination
 if platform.system() == 'Linux':
@@ -61,6 +61,7 @@ if not src.exists():
 ###---- begin moving files ----###
 dst = Path(destination, mouse, date)
 daq_loc = Path(daq_loc)
+refimg_loc = list(src.glob('*refimg*'))
 vis_loc = Path(vis_loc, date, mouse) # same as before, i think date format is different so no need to do [2:]
 vis_loc_new = Path(vis_loc_new)
 
@@ -82,6 +83,14 @@ print('Moving root folder files...')
 time.sleep(1) 
 for item in tqdm(root_files):
     shutil.copy(item, dst)
+
+# move the refenece image, if it exists...
+print('Searching for reference image...')
+if refimg_loc: # if it exists
+    print('Moving reference image.')
+    shutil.copy(refimg_loc[0], dst)
+else:
+    print('No reference image found.')
 
 print('Moving epoch folders...')
 n = len(root_folders)
@@ -124,7 +133,7 @@ else:
     
 # search for other PT files and download
 if vis_loc_new.exists():
-    visfiles_2 = vis_loc_new.glob(date+'_*')
+    visfiles_2 = vis_loc_new.glob(f'{date}_{mouse}_*')
     if len(list(visfiles_2)) > 0:
         print('Found PT vis stim file(s) in the new directory. Downloading...')
         for f in visfiles_2:
