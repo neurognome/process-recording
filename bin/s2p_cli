@@ -131,6 +131,7 @@ else:
     all_tiffs = [SItiffCore(glob(d + '/*.tif')[0]) for d in data_path] # get the first tiff from each epoch 
     tmp_tiff = all_tiffs[[a.nchannels for a in all_tiffs].index(2)]
 
+#tmp_tiff needs to both exist and have 2 channels, then that trips a flag for later, fix this
 if tmp_tiff:
     db = {
         'save_path0': str(temp_save_path),
@@ -159,9 +160,8 @@ db = {
 }
 
 printline()
-# print('Starting suite2p...')
-# run_s2p(ops=ops, db=db)
-# print('suite2p finished.')
+print('Starting suite2p...')
+run_s2p(ops=ops, db=db)
 
 printline()
 print('Labelling red cells...')
@@ -174,3 +174,5 @@ for s in stat_files:
 
 #cleanup
 shutil.rmtree(temp_save_path)
+
+print('Finished!')
