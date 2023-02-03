@@ -14,7 +14,7 @@ from suite2p.detection import chan2detect
 
 sys.path.append('/home/kevinsit/code/process-recording')
 
-from holofun.si_tiff import SItiffCore
+from helpers.si_tiff import SItiffCore
 import s2p_ops
 
 def printline():
@@ -119,12 +119,9 @@ for sv in save_locs:
         yaml.dump(db_out, f, default_flow_style=False)
 
 printline()
+# look for a reference channel for red.. if reference channel exists with no red, skip it, its not useful
 refimg_loc = list(expt_path.glob('*refimg*'))
-# generate random folder id
-temp_id = ''.join(str(randint(0, 9)) for _ in range(10))
-temp_save_path = Path(result_base, mouse, date, temp_id).as_posix()
 if refimg_loc:
-    # do the processing here ye?
     tmp_tiff = SItiffCore(str(refimg_loc[0]))
 else:
     print('Searching for a dual channel recording...')
@@ -132,7 +129,9 @@ else:
     tmp_tiff = all_tiffs[[a.nchannels for a in all_tiffs].index(2)]
 
 #tmp_tiff needs to both exist and have 2 channels, then that trips a flag for later, fix this
-if tmp_tiff:
+if tmp_tiff.nchannels > 1:
+    temp_id = ''.join(str(randint(0, 9)) for _ in range(10))
+    temp_save_path = Path(result_base, mouse, date, temp_id).as_posix()
     db = {
         'save_path0': str(temp_save_path),
         'data_path': [str(Path(tmp_tiff.path).parent.as_posix())],
@@ -144,8 +143,10 @@ if tmp_tiff:
     ops = getattr(s2p_ops, 'red')
     print('Processing refimg')
     red_ops = run_s2p(ops=ops, db=db)
+    is_dual_channel = True
 else: 
     print('Unable to get any red channel data.')
+    is_dual_channel = False
 
 # setup s2p db
 ops = getattr(s2p_ops, ops_to_use)
@@ -164,15 +165,15 @@ print('Starting suite2p...')
 run_s2p(ops=ops, db=db)
 
 printline()
-print('Labelling red cells...')
-# load stat
-stat_files = Path(save_path).rglob('stat.npy')
-for s in stat_files:
-    stat = np.load(str(s.as_posix()), allow_pickle=True)
-    _, redcell = chan2detect.detect(red_ops, stat)
-    np.save(Path(s).parent.joinpath('redcell.npy'), redcell)
-
-#cleanup
-shutil.rmtree(temp_save_path)
+if is_dual_channel: 
+    print('Labelling red cells...')
+    # load stat
+    stat_files = Path(save_path).rglob('stat.npy')
+    for s in stat_files:
+        stat = np.load(str(s.as_posix()), allow_pickle=True)
+        _, redcell = chan2detect.detect(red_ops, stat)
+        np.save(Path(s).parent.joinpath('redcell.npy'), redcell)
+    #cleanup
+    shutil.rmtree(temp_save_path)
 
 print('Finished!')
