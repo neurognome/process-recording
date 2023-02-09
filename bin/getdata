@@ -10,8 +10,8 @@ echo "Second, checking tiffs..."
 # python ~/holofun/scripts/tiffchecker.py $1 $2
 tiffchecker $1 $2
 
-conda deactivate
+# conda deactivate
 echo "All done, now to suite2p..."
 
-conda activate suite2p
+# conda activate suite2p
 python ~/code/process-recording/bin/s2p_cli $1 $2 $3
