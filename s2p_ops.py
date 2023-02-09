@@ -87,7 +87,7 @@ gcamp8m  = {
 
 red  = {
     # general
-    'diameter': 8,
+    # 'diameter': 8,
     'fast_disk': '/mnt/fast',
     'do_bidiphase': True,
     'save_mat': False,
