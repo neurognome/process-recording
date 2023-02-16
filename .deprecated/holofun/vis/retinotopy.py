@@ -76,8 +76,9 @@ class Retinotopy:
     
     def get_bounds(self):
         x, y, sz = self.calculate_grid()
-        lb = (x.min(), y.min(), 0, 0, 0, 0, 0)
-        ub = (x.max(), y.max(), np.inf, x.max(), y.max(), 2*np.pi, np.inf)
+        # lb = (x.min(), y.min(), 0, 0, 0, 0, 0)
+        lb = (x.min(), y.min(), 0, 5, 5, 0, 0)
+        # ub = (x.max(), y.max(), np.inf, x.max(), y.max(), 2*np.pi, np.inf)
         ub = (x.max(), y.max(), np.inf, 20, 20, 2*np.pi, np.inf)
         self.bds = (lb, ub)
         
