@@ -12,14 +12,14 @@ import time
 
 
 remote_root_win = 'x:/'
-remote_root_wsl = '/mnt/frankenshare/'
+remote_root_wsl = '/mnt/scope2kshare/'
 if platform.system() == 'Linux':
     rt = remote_root_wsl
 else:
     rt = remote_root_win
 
 # remote server location
-remote = rt+'kevin/raw'
+remote = rt+'KKS/raw'
 
 # daq file loc
 daq_loc = rt+'setupdaq'
@@ -28,7 +28,7 @@ daq_loc = rt+'setupdaq'
 vis_loc = rt+'stimdata'
 
 # new vis stim data loc
-vis_loc_new = rt+'kevin/pt-data'
+vis_loc_new = rt+'KKS/pt-data'
 
 # local destination
 if platform.system() == 'Linux':

@@ -129,7 +129,7 @@ else:
     tmp_tiff = all_tiffs[[a.nchannels for a in all_tiffs].index(2)]
 
 #tmp_tiff needs to both exist and have 2 channels, then that trips a flag for later, fix this
-if tmp_tiff.nchannels > 1:
+if tmp_tiff.nchannels > 5:
     temp_id = ''.join(str(randint(0, 9)) for _ in range(10))
     temp_save_path = Path(result_base, mouse, date, temp_id).as_posix()
     db = {
