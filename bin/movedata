@@ -101,7 +101,7 @@ for i,item in enumerate(root_folders):
     print(f"Moving folder '{item.stem}' ({i+1}/{n})...")
     files_in_folder = list(item.glob('*'))
     time.sleep(1)
-    for f in tqdm(files_in_folder):
+    for f in tqdm(files_in_folder, total=len(files_in_folder)):
         if f.is_file():
             shutil.copy(f, new_folder)
         elif f.is_dir():
