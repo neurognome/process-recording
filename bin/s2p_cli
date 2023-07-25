@@ -15,10 +15,23 @@ from suite2p.detection import chan2detect
 sys.path.append('/home/kevinsit/code/process-recording')
 
 from helpers.si_tiff import SItiffCore
+import tifffile
 import s2p_ops
 
 def printline():
     print('-----------------------------------------------------')
+
+def read_tiffs(input):
+    with tifffile.TiffFile(input) as tif:
+        for tag in tif.pages[0].tags:
+            print(tag.name)
+            print(tag.value)
+    # try:
+    #     print('Used SItiffCore')
+    #     return SItiffCore(input)
+    # except:
+    #     print('Used tifffile')
+    #     return tifffile.imread(input)
 
 TIFF_BASE = '/mnt/data/raw'
 RESULT_BASE = '/mnt/data/processed'
@@ -125,8 +138,6 @@ if refimg_loc:
     tmp_tiff = SItiffCore(str(refimg_loc[0]))
 else:
     print('Searching for a dual channel recording...')
-    print(data_path)
-    print(SItiffCore)
     all_tiffs = [SItiffCore(glob(d + '/*.tif')[0]) for d in data_path] # get the first tiff from each epoch 
     tmp_tiff = all_tiffs[[a.nchannels for a in all_tiffs].index(2)]
 
@@ -179,3 +190,4 @@ if is_dual_channel:
     shutil.rmtree(temp_save_path)
 
 print('Finished!')
+
