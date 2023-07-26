@@ -163,7 +163,7 @@ else:
 
 # setup s2p db
 ops = getattr(s2p_ops, ops_to_use)
-tmp_tiff = SItiffCore(glob(data_path[0] + '/*.tif')[0]) # get the first tiff from each epoch
+tmp_tiff = SItiffCore(glob(data_path[0] + '/*.tif')[0], backend='tifffile') # get the first tiff from each epoch
 
 db = {
     'save_path0': save_path,
