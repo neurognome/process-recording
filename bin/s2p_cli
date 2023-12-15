@@ -131,35 +131,35 @@ for sv in save_locs:
     with open(sv, 'w') as f:
         yaml.dump(db_out, f, default_flow_style=False)
 
-printline()
-# look for a reference channel for red.. if reference channel exists with no red, skip it, its not useful
-refimg_loc = list(expt_path.glob('*refimg*'))
-if refimg_loc:
-    tmp_tiff = SItiffCore(str(refimg_loc[0]))
-else:
-    print('Searching for a dual channel recording...')
-    all_tiffs = [SItiffCore(glob(d + '/*.tif')[0]) for d in data_path] # get the first tiff from each epoch 
-    tmp_tiff = all_tiffs[[a.nchannels for a in all_tiffs].index(2)]
+# printline()
+# # look for a reference channel for red.. if reference channel exists with no red, skip it, its not useful
+# refimg_loc = list(expt_path.glob('*refimg*'))
+# if refimg_loc:
+#     tmp_tiff = SItiffCore(str(refimg_loc[0]))
+# else:
+#     print('Searching for a dual channel recording...')
+#     all_tiffs = [SItiffCore(glob(d + '/*.tif')[0]) for d in data_path] # get the first tiff from each epoch 
+#     tmp_tiff = all_tiffs[[a.nchannels for a in all_tiffs].index(2)]
 
 #tmp_tiff needs to both exist and have 2 channels, then that trips a flag for later, fix this
-if tmp_tiff.nchannels > 5:
-    temp_id = ''.join(str(randint(0, 9)) for _ in range(10))
-    temp_save_path = Path(result_base, mouse, date, temp_id).as_posix()
-    db = {
-        'save_path0': str(temp_save_path),
-        'data_path': [str(Path(tmp_tiff.path).parent.as_posix())],
-        'tiff_list': [tmp_tiff.path],
-        'nchannels': tmp_tiff.nchannels,
-        'nplanes': tmp_tiff.nplanes,
-        'fs': tmp_tiff.fr
-    }
-    ops = getattr(s2p_ops, 'red')
-    print('Processing refimg')
-    red_ops = run_s2p(ops=ops, db=db)
-    is_dual_channel = True
-else: 
-    print('Unable to get any red channel data.')
-    is_dual_channel = False
+# if tmp_tiff.nchannels > 1:
+#     temp_id = ''.join(str(randint(0, 9)) for _ in range(10))
+#     temp_save_path = Path(result_base, mouse, date, temp_id).as_posix()
+#     db = {
+#         'save_path0': str(temp_save_path),
+#         'data_path': [str(Path(tmp_tiff.path).parent.as_posix())],
+#         'tiff_list': [tmp_tiff.path],
+#         'nchannels': tmp_tiff.nchannels,
+#         'nplanes': tmp_tiff.nplanes,
+#         'fs': tmp_tiff.fr
+#     }
+#     ops = getattr(s2p_ops, 'red')
+#     print('Processing refimg')
+#     red_ops = run_s2p(ops=ops, db=db)
+#     is_dual_channel = True
+# else: 
+#     print('Unable to get any red channel data.')
+#     is_dual_channel = False
 
 # setup s2p db
 ops = getattr(s2p_ops, ops_to_use)
@@ -168,7 +168,7 @@ tmp_tiff = SItiffCore(glob(data_path[0] + '/*.tif')[0], backend='tifffile') # ge
 db = {
     'save_path0': save_path,
     'data_path': data_path,
-    'nchannels': 1, #mp_tiff.nchannels, #max([t.nchannels for t in tmp_tiff]), #temporary..., tmp_tiff.nchannels,
+    'nchannels': tmp_tiff.nchannels,#max([t.nchannels for t in all_tiffs]), #temporary..., tmp_tiff.nchannels,
     'nplanes': tmp_tiff.nplanes,
     'fs': tmp_tiff.fr
 }
@@ -177,17 +177,17 @@ printline()
 print('Starting suite2p...')
 run_s2p(ops=ops, db=db)
 
-printline()
-if is_dual_channel: 
-    print('Labelling red cells...')
-    # load stat
-    stat_files = Path(save_path).rglob('stat.npy')
-    for s in stat_files:
-        stat = np.load(str(s.as_posix()), allow_pickle=True)
-        _, redcell = chan2detect.detect(red_ops, stat)
-        np.save(Path(s).parent.joinpath('redcell.npy'), redcell)
-    #cleanup
-    shutil.rmtree(temp_save_path)
+# printline()
+# print('Labelling red cells...')
+# # load stat
+# stat_files = Path(save_path).rglob('stat.npy')
+# for s in stat_files:
+#     print(s.as_posix())
+#     stat = np.load(str(s.as_posix()), allow_pickle=True)
+#     breakpoint()
+#     _, redcell = chan2detect.detect(ops_out, stat)
+#     np.save(Path(s).parent.joinpath('redcell.npy'), redcell)
+# #cleanup
+# shutil.rmtree(temp_save_path)
 
 print('Finished!')
-
