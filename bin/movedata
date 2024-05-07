@@ -25,10 +25,13 @@ remote = rt+'KKS/raw'
 daq_loc = rt+'setupdaq'
 
 # vis stim data loc
-vis_loc = rt+'stimdata'
+# vis_loc = rt+'stimdata'
+
+# other stim data
+stim_loc = rt+'KKS/stim-data'
 
 # new vis stim data loc
-vis_loc_new = rt+'KKS/pt-data'
+# vis_loc_new = rt+'KKS/pt-data'
 
 # local destination
 if platform.system() == 'Linux':
@@ -44,7 +47,7 @@ parser.add_argument('mouse', type=str)
 parser.add_argument('date', type=str)
 parser.add_argument('--remote', help='remote server location', default=remote, dest='remote')
 parser.add_argument('--daqloc', help='daq file location', default=daq_loc, dest='daq_loc')
-parser.add_argument('--visloc', help='vis stim file location', default=vis_loc, dest='vis_loc')
+parser.add_argument('--stimloc', help='vis stim file location', default=stim_loc, dest='stim_loc')
 parser.add_argument('--dest', help='destination folder', default=destination, dest='destination')
 args = parser.parse_args()
 
@@ -62,8 +65,9 @@ if not src.exists():
 dst = Path(destination, mouse, date)
 daq_loc = Path(daq_loc)
 refimg_loc = list(src.glob('*refimg*'))
-vis_loc = Path(vis_loc, date, mouse) # same as before, i think date format is different so no need to do [2:]
-vis_loc_new = Path(vis_loc_new)
+# vis_loc = Path(vis_loc, date, mouse) # same as before, i think date format is different so no need to do [2:]
+stim_loc = Path(stim_loc)
+# vis_loc_new = Path(vis_loc_new)
 
 # make the direction locally if it doesn't exist for that mouse
 if not dst.parent.exists():
@@ -122,24 +126,35 @@ else:
     for df in daq_file:
         shutil.copy(df, dst)    
 
-# search for PT files and download
-if vis_loc.exists():
-    print('Found PT vis stim file(s). Downloading...')
-    # make a pt directory
-    for f in vis_loc.iterdir():
-        shutil.copy(f, dst)
-else:
-    print('No PT vis files found, skipping.')
+
+# # search for PT files and download
+# if vis_loc.exists():
+#     print('Found PT vis stim file(s). Downloading...')
+#     # make a pt directory
+#     for f in vis_loc.iterdir():
+#         shutil.copy(f, dst)
+# else:
+#     print('No PT vis files found, skipping.')
     
-# search for other PT files and download
-if vis_loc_new.exists():
-    visfiles_2 = list(vis_loc_new.glob(f'{date}_{mouse}_*'))
-    if len(visfiles_2) > 0:
-        print('Found PT vis stim file(s) in the new directory. Downloading...')
-        for f in visfiles_2:
+# # search for other PT files and download
+# if vis_loc_new.exists():
+#     visfiles_2 = list(vis_loc_new.glob(f'{date}_{mouse}_*'))
+#     if len(visfiles_2) > 0:
+#         print('Found PT vis stim file(s) in the new directory. Downloading...')
+#         for f in visfiles_2:
+#             shutil.copy(f, dst)
+#     else:
+#         print('No PT vis files found in new directory, skipping.')
+
+# search for stimulus information files and download
+if stim_loc.exists():
+    stim_files = list(stim_loc.rglob(f'{date}_{mouse}_*'))
+    if len(stim_files) > 0:
+        print('Found stimulus files in directory. Downloading...')
+        for f in stim_files:
             shutil.copy(f, dst)
     else:
-        print('No PT vis files found in new directory, skipping.')
-        
+        print('No stim files found in directory, skipping.')
+          
 print('Done moving files :)')
 print('Have a nice day!')
