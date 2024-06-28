@@ -1,12 +1,11 @@
 default_ops = {
     # general
-    'diameter': 10,
+    'diameter': 15,
     'fast_disk': '/mnt/fast',
-    'do_bidiphase': True,
+    'do_bidiphase': False,
     'save_mat': False,
     'save_NWB': False,
-    'tau': 1.0,
-    # 'preclassify': 0., # apply classifier before signal extraction with a prob of 0.3
+    'tau': 1.3,
     'combined': False,
     
     # registration
@@ -18,11 +17,11 @@ default_ops = {
     'align_by_chan': 1, # 1-based, use 2 for tdT
     
     # non rigid registration settings
-    'nonrigid': False, # whether to use nonrigid registration
+    'nonrigid': True, # whether to use nonrigid registration
     
     # cell extraction
     'denoise': False,
-    'threshold_scaling': 2.0, # adjust the automatically determined threshold by this scalar multiplier, was 1. (WH) # 0.6 for low signal, default 5
+    'threshold_scaling': 0.6, # adjust the automatically determined threshold by this scalar multiplier, was 1. (WH) # 0.6 for low signal, default 5
     'sparse_mode': False,
     'max_iterations': 50, # usualy stops at threshold scaling, default 20
     'high_pass': 100,  # running mean subtraction with window of size 'high_pass' (use low values for 1P), default 100
@@ -36,7 +35,7 @@ default_ops = {
     'neucoeff': 0.7,  # neuropil coefficient
     
     # custom settings
-    'remove_artifacts': (100, 512-100)
+    # 'remove_artifacts': (100, 512-100)
 }
 
 # these settings are taken from run_s2p_8m.py

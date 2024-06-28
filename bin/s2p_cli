@@ -10,7 +10,9 @@ import numpy as np
 from random import randint
 from suite2p import run_s2p
 import shutil
+import os
 from suite2p.detection import chan2detect
+import random
 
 sys.path.append('/home/kevinsit/code/process-recording')
 
@@ -36,7 +38,7 @@ def read_tiffs(input):
 TIFF_BASE = '/mnt/data/raw'
 RESULT_BASE = '/mnt/data/processed'
 
-ops_to_use = 'gcamp8m'
+ops_to_use = 'default_ops'
 ##--- handle args ---##
 parser = argparse.ArgumentParser(description='Run Suite2p!')
 parser.add_argument('mouse', type=str)
@@ -75,20 +77,28 @@ while True:
     print(f'Looking in: {expt_path}\n')
     print('Type the number of the epochs to keep with spaces in between. (use 0-based indexing)')
     print(f'(eg. -> 1 2 5 6)\n')
+    print(f'Or.. type a for all\n')
 
     for i,p in enumerate(pth):
         print(f'{i}: {p.stem}')
 
     epoch_input = input('-> ')
-    epoch_list = epoch_input.split(' ')
-    epoch_idxs = [int(e) for e in epoch_list]
+    if epoch_input == 'a':
+        print('\nYou chose to sequentially do all epochs?')
+        printline()
+        # group_idxs = list(range(len(pth)))
+        group_idxs = [[e] for e in range(len(pth))]
+    else:
+        epoch_list = epoch_input.split(' ')
+        epoch_idxs = [int(e) for e in epoch_list]
+        group_idxs = [epoch_idxs]
 
-    print('\nYou chose these epochs?')
-    printline()
+        print('\nYou chose these epochs?')
+        printline()
 
-    chosen_epochs = [pth[i] for i in epoch_idxs]
-    for e in chosen_epochs:
-        print(e)
+        chosen_epochs = [pth[i] for i in epoch_idxs]
+        for e in chosen_epochs:
+            print(e)
 
     ans = input('(y/n): ')
     if ans == 'y':
@@ -99,95 +109,104 @@ while True:
     else:
         print('not an acceptable input! (press ctrl-C to exit)')
 
-epoch_folders = [pth[i] for i in epoch_idxs]
-epoch_names = [Path(epoch).stem for epoch in epoch_folders]
-mouse = args.mouse
-date = args.date
-data_path = [str(Path(tiff_base, mouse, date, lbl).as_posix()) for lbl in epoch_names]
-save_path = str(Path(result_base, mouse, date, '_'.join(epoch_names)).as_posix())
+for g in group_idxs:
+    epoch_folders = [pth[i] for i in g]
+    epoch_names = [Path(epoch).stem for epoch in epoch_folders]
+    mouse = args.mouse
+    date = args.date
+    data_path = [str(Path(tiff_base, mouse, date, lbl).as_posix()) for lbl in epoch_names]
+    save_path = str(Path(result_base, mouse, date, '_'.join(epoch_names)).as_posix())
 
-# append notes
-notes = input('\nNotes: ')
+    # append notes
+    # notes = input('\nNotes: ')
 
-# save everything into a record file
-db_out = {
-    'mouse': mouse,
-    'date': date,
-    'epochs': epoch_names,
-    'result_folder': args.dest,
-    'data_path': data_path,
-    'save_path': save_path,
-    'notes': notes
-}
+    # save everything into a record file
+    db_out = {
+        'mouse': mouse,
+        'date': date,
+        'epochs': epoch_names,
+        'result_folder': args.dest,
+        'data_path': data_path,
+        'save_path': save_path,
+        # 'notes': notes
+    }
 
-dt = datetime.now().strftime("%Y%m%d_%H%M%S")
-db_save_path = '__'.join([date, mouse, 'suite2p', dt])+'.yml'
+    dt = datetime.now().strftime("%Y%m%d_%H%M%S")
+    db_save_path = '__'.join([date, mouse, 'suite2p', dt])+'.yml'
 
-save_locs = [
-    Path('/mnt/data/processed/db', db_save_path),
-    # Path('/mnt/synapse/db/suite2p')
-]
-for sv in save_locs:
-    with open(sv, 'w') as f:
-        yaml.dump(db_out, f, default_flow_style=False)
+    save_locs = [
+        Path('/mnt/data/processed/db', db_save_path),
+    ]
+    for sv in save_locs:
+        with open(sv, 'w') as f:
+            yaml.dump(db_out, f, default_flow_style=False)
 
-# printline()
-# # look for a reference channel for red.. if reference channel exists with no red, skip it, its not useful
-# refimg_loc = list(expt_path.glob('*refimg*'))
-# if refimg_loc:
-#     tmp_tiff = SItiffCore(str(refimg_loc[0]))
-# else:
-#     print('Searching for a dual channel recording...')
-#     all_tiffs = [SItiffCore(glob(d + '/*.tif')[0]) for d in data_path] # get the first tiff from each epoch 
-#     tmp_tiff = all_tiffs[[a.nchannels for a in all_tiffs].index(2)]
+    # printline()
+    # # look for a reference channel for red.. if reference channel exists with no red, skip it, its not useful
+    # refimg_loc = list(expt_path.glob('*refimg*'))
+    # if refimg_loc:
+    #     tmp_tiff = SItiffCore(str(refimg_loc[0]))
+    # else:
+    #     print('Searching for a dual channel recording...')
+    #     all_tiffs = [SItiffCore(glob(d + '/*.tif')[0]) for d in data_path] # get the first tiff from each epoch 
+    #     tmp_tiff = all_tiffs[[a.nchannels for a in all_tiffs].index(2)]
 
-#tmp_tiff needs to both exist and have 2 channels, then that trips a flag for later, fix this
-# if tmp_tiff.nchannels > 1:
-#     temp_id = ''.join(str(randint(0, 9)) for _ in range(10))
-#     temp_save_path = Path(result_base, mouse, date, temp_id).as_posix()
-#     db = {
-#         'save_path0': str(temp_save_path),
-#         'data_path': [str(Path(tmp_tiff.path).parent.as_posix())],
-#         'tiff_list': [tmp_tiff.path],
-#         'nchannels': tmp_tiff.nchannels,
-#         'nplanes': tmp_tiff.nplanes,
-#         'fs': tmp_tiff.fr
-#     }
-#     ops = getattr(s2p_ops, 'red')
-#     print('Processing refimg')
-#     red_ops = run_s2p(ops=ops, db=db)
-#     is_dual_channel = True
-# else: 
-#     print('Unable to get any red channel data.')
-#     is_dual_channel = False
+    #tmp_tiff needs to both exist and have 2 channels, then that trips a flag for later, fix this
+    # if tmp_tiff.nchannels > 1:
+    #     temp_id = ''.join(str(randint(0, 9)) for _ in range(10))
+    #     temp_save_path = Path(result_base, mouse, date, temp_id).as_posix()
+    #     db = {
+    #         'save_path0': str(temp_save_path),
+    #         'data_path': [str(Path(tmp_tiff.path).parent.as_posix())],
+    #         'tiff_list': [tmp_tiff.path],
+    #         'nchannels': tmp_tiff.nchannels,
+    #         'nplanes': tmp_tiff.nplanes,
+    #         'fs': tmp_tiff.fr
+    #     }
+    #     ops = getattr(s2p_ops, 'red')
+    #     print('Processing refimg')
+    #     red_ops = run_s2p(ops=ops, db=db)
+    #     is_dual_channel = True
+    # else: 
+    #     print('Unable to get any red channel data.')
+    #     is_dual_channel = False
 
-# setup s2p db
-ops = getattr(s2p_ops, ops_to_use)
-tmp_tiff = SItiffCore(glob(data_path[0] + '/*.tif')[0], backend='tifffile') # get the first tiff from each epoch
+    # setup s2p db
+    ops = getattr(s2p_ops, ops_to_use)
+    tmp_tiff = SItiffCore(glob(data_path[0] + '/*.tif')[0], backend='tifffile') # get the first tiff from each epoch
 
-db = {
-    'save_path0': save_path,
-    'data_path': data_path,
-    'nchannels': tmp_tiff.nchannels,#max([t.nchannels for t in all_tiffs]), #temporary..., tmp_tiff.nchannels,
-    'nplanes': tmp_tiff.nplanes,
-    'fs': tmp_tiff.fr
-}
+    db = {
+        'save_path0': save_path,
+        'data_path': data_path,
+        'nchannels': tmp_tiff.nchannels,#max([t.nchannels for t in all_tiffs]), #temporary..., tmp_tiff.nchannels,
+        'nplanes': tmp_tiff.nplanes,
+        'fs': tmp_tiff.fr
+    }
 
-printline()
-print('Starting suite2p...')
-run_s2p(ops=ops, db=db)
+    # generate a randomized folder for fast
 
-# printline()
-# print('Labelling red cells...')
-# # load stat
-# stat_files = Path(save_path).rglob('stat.npy')
-# for s in stat_files:
-#     print(s.as_posix())
-#     stat = np.load(str(s.as_posix()), allow_pickle=True)
-#     breakpoint()
-#     _, redcell = chan2detect.detect(ops_out, stat)
-#     np.save(Path(s).parent.joinpath('redcell.npy'), redcell)
-# #cleanup
-# shutil.rmtree(temp_save_path)
+    sfx = random.randint(1, 999999999) # random
+    ops['fast_disk'] = ops['fast_disk'] + '/' + str(sfx)
 
+    print(ops['fast_disk'])
+    os.mkdir(ops['fast_disk'])
+
+    printline()
+    print('Starting suite2p...')
+    run_s2p(ops=ops, db=db)
+
+    # printline()
+    # print('Labelling red cells...')
+    # # load stat
+    # stat_files = Path(save_path).rglob('stat.npy')
+    # for s in stat_files:
+    #     print(s.as_posix())
+    #     stat = np.load(str(s.as_posix()), allow_pickle=True)
+    #     breakpoint()
+    #     _, redcell = chan2detect.detect(ops_out, stat)
+    #     np.save(Path(s).parent.joinpath('redcell.npy'), redcell)
+    # #cleanup
+    # shutil.rmtree(temp_save_path)
+
+    shutil.rmtree(ops['fast_disk']) # cleanup after yoself
 print('Finished!')
