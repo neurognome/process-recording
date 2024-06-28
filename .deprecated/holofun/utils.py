@@ -153,7 +153,6 @@ def make_paths(mouse, date, result_base, tiff_base='f:/experiments',
         franken = Path('/mnt/frankenshare')
         edrive = Path('/mnt/localdata/', result_base, mouse, date)
         tiff_path = Path('/mnt', 'data2/experiments', mouse, date)
-        
     else:
         franken = Path(franken_drive + ':/')
         edrive = Path('e:/', result_base, mouse, date)
