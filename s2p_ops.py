@@ -1,6 +1,6 @@
 default_ops = {
     # general
-    'diameter': 15,
+    'diameter': 10,
     'fast_disk': '/mnt/fast',
     'do_bidiphase': False,
     'save_mat': False,
@@ -15,13 +15,15 @@ default_ops = {
     'nimg_init': 800, # subsampled frames for finding reference image
     'batch_size': 2000, #2000, # number of frames per batch, default=500
     'align_by_chan': 1, # 1-based, use 2 for tdT
+    'reg_tif': True,
+    'reg_tif_chan2': True,
     
     # non rigid registration settings
     'nonrigid': True, # whether to use nonrigid registration
     
     # cell extraction
     'denoise': False,
-    'threshold_scaling': 0.6, # adjust the automatically determined threshold by this scalar multiplier, was 1. (WH) # 0.6 for low signal, default 5
+    'threshold_scaling': 1, # adjust the automatically determined threshold by this scalar multiplier, was 1. (WH) # 0.6 for low signal, default 5
     'sparse_mode': False,
     'max_iterations': 50, # usualy stops at threshold scaling, default 20
     'high_pass': 100,  # running mean subtraction with window of size 'high_pass' (use low values for 1P), default 100
@@ -35,7 +37,13 @@ default_ops = {
     'neucoeff': 0.7,  # neuropil coefficient
     
     # custom settings
-    # 'remove_artifacts': (100, 512-100)
+    'remove_artifacts': (75, 512-75)
+}
+
+register_only = {
+    'reg_tif': True,
+    'roidetect': False,
+    'fast_disk': '/mnt/fast',
 }
 
 # these settings are taken from run_s2p_8m.py

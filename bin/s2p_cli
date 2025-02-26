@@ -28,12 +28,6 @@ def read_tiffs(input):
         for tag in tif.pages[0].tags:
             print(tag.name)
             print(tag.value)
-    # try:
-    #     print('Used SItiffCore')
-    #     return SItiffCore(input)
-    # except:
-    #     print('Used tifffile')
-    #     return tifffile.imread(input)
 
 TIFF_BASE = '/mnt/data/raw'
 RESULT_BASE = '/mnt/data/processed'
