@@ -32,21 +32,27 @@ def read_tiffs(input):
 TIFF_BASE = '/mnt/data/raw'
 RESULT_BASE = '/mnt/data/processed'
 
-ops_to_use = 'default_ops'
 ##--- handle args ---##
 parser = argparse.ArgumentParser(description='Run Suite2p!')
 parser.add_argument('mouse', type=str)
 parser.add_argument('date', type=str)
 parser.add_argument('dest', type=str,
                     help="name of folder to save into. will be create if it doesn't exist")
+parser.add_argument('-a', '--autorun',
+                    action='store_true', dest='autorun')
 parser.add_argument('--resultbase', 
                     help='result base folder location',
                     default=RESULT_BASE, dest='result_path')
 parser.add_argument('--tiffbase', 
                     help='tiff base folder location',
                     default=TIFF_BASE, dest='tiff_loc')
+parser.add_argument('-o', '--ops_to_use',
+                    help='which ops to run',
+                     default='default_ops', dest='ops', type=str)
 
 args = parser.parse_args()
+ops_to_use = args.ops
+autorun = args.autorun
 
 ##--- make paths ---##
 result_base = Path(args.result_path, args.dest)
@@ -58,50 +64,55 @@ art = """
   _)      
 
 Process new experiment with suite2p!
+
 """
 print(art)
 print(f'\nYour save path will be: {result_base}\n')
+print(f'\nYou will be using ops: {ops_to_use}')
 
 expt_path = Path(args.tiff_loc, args.mouse, args.date)
 root_data = [f for f in expt_path.iterdir()]
 pth = sorted([f for f in root_data if f.is_dir()])
 
 # do prompt
-while True:
-    print(f'Looking in: {expt_path}\n')
-    print('Type the number of the epochs to keep with spaces in between. (use 0-based indexing)')
-    print(f'(eg. -> 1 2 5 6)\n')
-    print(f'Or.. type a for all\n')
+if autorun:
+    group_idxs = [[e for e in range(len(pth))]]
+else:
+    while True:
+        print(f'Looking in: {expt_path}\n')
+        print('Type the number of the epochs to keep with spaces in between. (use 0-based indexing)')
+        print(f'(eg. -> 1 2 5 6)\n')
+        print(f'Or.. type a for all\n')
 
-    for i,p in enumerate(pth):
-        print(f'{i}: {p.stem}')
+        for i,p in enumerate(pth):
+            print(f'{i}: {p.stem}')
 
-    epoch_input = input('-> ')
-    if epoch_input == 'a':
-        print('\nYou chose to sequentially do all epochs?')
-        printline()
-        # group_idxs = list(range(len(pth)))
-        group_idxs = [[e] for e in range(len(pth))]
-    else:
-        epoch_list = epoch_input.split(' ')
-        epoch_idxs = [int(e) for e in epoch_list]
-        group_idxs = [epoch_idxs]
+        epoch_input = input('-> ')
+        if epoch_input == 'a':
+            print('\nYou chose to sequentially do all epochs?')
+            printline()
+            # group_idxs = list(range(len(pth)))
+            group_idxs = [[e] for e in range(len(pth))]
+        else:
+            epoch_list = epoch_input.split(' ')
+            epoch_idxs = [int(e) for e in epoch_list]
+            group_idxs = [epoch_idxs]
 
-        print('\nYou chose these epochs?')
-        printline()
+            print('\nYou chose these epochs?')
+            printline()
 
-        chosen_epochs = [pth[i] for i in epoch_idxs]
-        for e in chosen_epochs:
-            print(e)
+            chosen_epochs = [pth[i] for i in epoch_idxs]
+            for e in chosen_epochs:
+                print(e)
 
-    ans = input('(y/n): ')
-    if ans == 'y':
-        break
-    elif ans == 'n':
-        print('\nOK, try again... (press ctrl-C to exit)')
-        continue
-    else:
-        print('not an acceptable input! (press ctrl-C to exit)')
+        ans = input('(y/n): ')
+        if ans == 'y':
+            break
+        elif ans == 'n':
+            print('\nOK, try again... (press ctrl-C to exit)')
+            continue
+        else:
+            print('not an acceptable input! (press ctrl-C to exit)')
 
 for g in group_idxs:
     epoch_folders = [pth[i] for i in g]

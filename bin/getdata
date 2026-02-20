@@ -14,4 +14,4 @@ tiffchecker $1 $2
 echo "All done, now to suite2p..."
 
 # conda activate suite2p
-python ~/code/process-recording/bin/s2p_cli $1 $2 $3
+python ~/code/process-recording/bin/s2p_cli $@ #$1 $2 $3 $4 $5 $6
