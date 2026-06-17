@@ -8,7 +8,7 @@ with open('VERSION', 'r') as verf:
     version = verf.read()
     
 setuptools.setup(
-    name='holofun',
+    name='process-recording',
     version=version,
     author='Will Hendricks',
     author_email='hendricksw@berkeley.edu',
