@@ -37,8 +37,11 @@ default_ops = {
     'neucoeff': 0.7,  # neuropil coefficient
     
     # custom settings
-    # 'auto' -> bounds detected per-recording by helpers.artifacts.detect_artifact_bounds
-    # (set a fixed tuple e.g. (75, 512-75) to override with a manual crop)
+    # 'auto' -> bounds detected per-recording by helpers.artifacts.detect_artifact_bounds,
+    # then floored at s2p_cli.ARTIFACT_MIN_CROP px/side (currently 100) to cover the
+    # contaminated penumbra past the visible band.
+    # (set a fixed tuple e.g. (100, 512-100) to override with a manual crop, which
+    #  bypasses both detection and the floor)
     'remove_artifacts': 'auto'}
 
 voltage = {

@@ -21,12 +21,22 @@ from helpers.artifacts import detect_artifact_bounds, _resolve_fallback
 import tifffile
 import s2p_ops
 
-# fallback holography-artifact crop applied when auto-detection finds no band
-# (e.g. the sampled tiff has no photostim frames). Asymmetric (x_start, x_end)
-# tuple mirroring the typical detected bounds so it cuts the least while still
-# covering the band (left edge ~x90, right edge ~x441 on 512px frames). An int
-# gives a symmetric px/side crop instead; None disables the fallback (no crop).
-ARTIFACT_FALLBACK = (90, 512 - 71)
+# Minimum holography-artifact crop, in px PER SIDE, floored onto whatever
+# detection returns (and onto the fallback). Set from KKS082-1/260804: the bands
+# were only visible out to x~90, but ROIs to x~147 still carried a step locked to
+# the photostim window, which faked a positive network response in cells far from
+# every target. 100 removes 231 of the 243 contaminated ROIs in that session and
+# leaves 1.1% of cells dirty, while keeping every target. Going to 150 clears only
+# 4 more but costs a further ~24% of the population and starts cutting targets that
+# sit near the band, so it is not worth it. Detection may still widen this on its
+# own -- though only to max_frac*Lx (153px on a 512 frame).
+ARTIFACT_MIN_CROP = 100
+
+# fallback crop applied when auto-detection finds no band (e.g. the sampled tiff
+# has no photostim frames). An int gives a symmetric px/side crop; a
+# (x_start, x_end) tuple gives explicit bounds; None disables it (no crop). The
+# min-crop floor above applies either way, so this only matters if it is wider.
+ARTIFACT_FALLBACK = ARTIFACT_MIN_CROP
 
 def printline():
     print('-----------------------------------------------------')
@@ -210,18 +220,19 @@ for g in group_idxs:
                                                   nchannels=tmp_tiff.nchannels,
                                                   func_ch=func_ch,
                                                   fallback=ARTIFACT_FALLBACK,
+                                                  min_crop=ARTIFACT_MIN_CROP,
                                                   return_info=True)
             ops['remove_artifacts'] = bounds
-            if info['detected']:
-                print(f'Auto artifact bounds: keep x[{bounds[0]}:{bounds[1]}] '
-                      f'(trim L={bounds[0]}, R={Lx - bounds[1]}) of {Lx}px width.')
-            elif info['fallback_used']:
-                print(f'Auto artifact detection: no band in sampled tiff; '
-                      f'using fallback crop {bounds}.')
-            else:
-                print(f'Auto artifact detection: no band found; no crop.')
+            how = ('detected' if info['detected'] else
+                   'fallback' if info['fallback_used'] else 'no band')
+            if info['widened_to_min_crop']:
+                how += f', widened to the {ARTIFACT_MIN_CROP}px/side minimum'
+            print(f'Artifact bounds [{how}]: keep x[{bounds[0]}:{bounds[1]}] '
+                  f'(trim L={bounds[0]}, R={Lx - bounds[1]}) of {Lx}px width.')
         except Exception as e:
             fallback = _resolve_fallback(ARTIFACT_FALLBACK, Lx)
+            f = min(ARTIFACT_MIN_CROP, Lx // 2)          # floor it here too
+            fallback = (max(fallback[0], f), min(fallback[1], Lx - f))
             ops['remove_artifacts'] = fallback
             print(f'WARNING: auto artifact detection failed ({e!r}); '
                   f'falling back to {fallback}.')

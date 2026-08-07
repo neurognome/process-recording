@@ -19,6 +19,16 @@ clean frames, which cancels the (static) tissue and leaves the band standing
 proud of a flat interior. Bands are then the bright, edge-contiguous columns of
 that difference profile. If no transient artifact is present (a clean recording,
 or one with no photostim), it returns ``(0, Lx)`` -- no crop.
+
+Note on the penumbra (``min_crop``). Where the band is *visible* is not where the
+contamination *ends*. On KKS082-1/260804 the bands were bright out to x~90, but
+ROIs segmented as far in as x~147 still showed a step locked to the photostim
+window -- 89% of cells in the outermost 64 px and 30% in the next 64 px, against
+~1-3% across the interior, and flat in Y (so it is the X bands, not a general
+edge effect). Uncorrected that faked a positive "network" response in cells far
+from every target. Hence ``min_crop``: a floor in px/side applied on top of
+detection, so the crop covers the penumbra while detection can still widen it
+when the real band is bigger.
 """
 import numpy as np
 
@@ -93,7 +103,8 @@ def _band_profile(plane_stack, edge_px=60, art_z=4.0, clean_z=1.0):
 
 def detect_artifact_bounds(data, nplanes=1, nchannels=1, func_ch=0,
                            k=6.0, smooth=7, margin=3, max_frac=0.30,
-                           edge_px=60, fallback=None, return_info=False):
+                           edge_px=60, fallback=None, min_crop=None,
+                           return_info=False):
     """
     Detect the transient holography edge bands and return columns to keep.
 
@@ -114,13 +125,22 @@ def detect_artifact_bounds(data, nplanes=1, nchannels=1, func_ch=0,
             has no photostim frames, so the band can't be seen here even though
             other tiffs in the epoch have it). ``None`` -> no crop; an int ->
             symmetric px-per-side crop; a ``(xs, xe)`` tuple -> those bounds.
+        min_crop (int | None): floor on the crop, in px per side, applied to the
+            detected bounds *and* to the fallback. The band's visible edge
+            under-states how far the contamination reaches: on KKS082-1/260804
+            the detected inner edge sat at x~90 while ROIs out to x~147 still
+            carried a photostim-locked step (see the note at module level). A
+            floor widens the crop to cover that penumbra without giving up
+            data-driven detection when the real band is wider still. ``None``
+            keeps the detected/fallback bounds as-is.
         return_info (bool): also return a dict of intermediates (for plotting).
 
     Returns:
         (x_start, x_end): integer columns to keep -- suite2p uses
         ``frame[:, x_start:x_end]``. When no transient band is found on any plane
         the resolved ``fallback`` is returned (``(0, Lx)`` / no crop by default).
-        With ``return_info`` returns ``((x_start, x_end), info)``.
+        Either way ``min_crop`` is then enforced. With ``return_info`` returns
+        ``((x_start, x_end), info)``.
     """
     data = np.asarray(data)
     if data.ndim != 3:
@@ -168,10 +188,21 @@ def detect_artifact_bounds(data, nplanes=1, nchannels=1, func_ch=0,
     if not detected:
         bounds = _resolve_fallback(fallback, Lx)
 
+    # enforce the minimum crop last, so it floors both paths. Detection sees only
+    # where the band is *visible*; contaminated ROIs extend past that.
+    widened = False
+    if min_crop:
+        # cap the floor the same way max_frac caps detection, so a mis-set
+        # min_crop can never empty the frame (0.4 keeps >=20% of the width)
+        f = min(int(min_crop), int(0.4 * Lx))
+        xs, xe = max(bounds[0], f), min(bounds[1], Lx - f)
+        widened = (xs, xe) != tuple(bounds)
+        bounds = (xs, xe)
+
     if return_info:
         info = dict(profile=prof, threshold=thr, baseline=base,
                     n_artifact=n_art, n_planes=len(profiles), Lx=Lx,
-                    detected=detected,
+                    detected=detected, widened_to_min_crop=widened,
                     fallback_used=(not detected and fallback is not None))
         return bounds, info
     return bounds
