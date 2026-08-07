@@ -37,7 +37,9 @@ default_ops = {
     'neucoeff': 0.7,  # neuropil coefficient
     
     # custom settings
-    'remove_artifacts': (75, 512-75)}
+    # 'auto' -> bounds detected per-recording by helpers.artifacts.detect_artifact_bounds
+    # (set a fixed tuple e.g. (75, 512-75) to override with a manual crop)
+    'remove_artifacts': 'auto'}
 
 voltage = {
     # general
