@@ -22,15 +22,38 @@ import tifffile
 import s2p_ops
 
 # Minimum holography-artifact crop, in px PER SIDE, floored onto whatever
-# detection returns (and onto the fallback). Set from KKS082-1/260804: the bands
-# were only visible out to x~90, but ROIs to x~147 still carried a step locked to
-# the photostim window, which faked a positive network response in cells far from
-# every target. 100 removes 231 of the 243 contaminated ROIs in that session and
-# leaves 1.1% of cells dirty, while keeping every target. Going to 150 clears only
-# 4 more but costs a further ~24% of the population and starts cutting targets that
-# sit near the band, so it is not worth it. Detection may still widen this on its
-# own -- though only to max_frac*Lx (153px on a 512 frame).
-ARTIFACT_MIN_CROP = 100
+# detection returns (and onto the fallback). Symmetric, so it is set by whichever
+# side is worse, and it is itself capped at 0.4*Lx in detect_artifact_bounds.
+#
+# Was 100, set from KKS082-1/260804: bands visible only to x~90, but ROIs to x~147
+# still carried a step locked to the photostim window, which faked a positive
+# network response in cells far from every target. 100 removed 231 of that
+# session's 243 contaminated ROIs, and 150 was judged not worth a further ~24% of
+# the population.
+#
+# Raised to 150 on the contrast-shift set (KKS082-1 260811/12/13, KKS083-1 260814),
+# where 100 is measurably not enough. Measuring the 900 nm dose effect per 48px
+# band of the scan axis, in all four recordings:
+#
+#     x 96-144   -0.056 to -0.077 dF   contaminated
+#     x 144-384  -0.015 to +0.006 dF   clean
+#     x 384-432  -0.017 to -0.022 dF   contaminated
+#
+# so contamination runs to x~144 on the left and from x~384 on the right (128px in).
+# The mechanism is not the visible band but neuropil over-subtraction beside it: in
+# x 96-144 the soma ROI gains -0.6 ADU while its neuropil annulus gains +10.7, so
+# F - 0.7*Fneu manufactures a -8.1 ADU step. flag_photostim_artifact then keeps
+# exactly those cells, because it only drops POSITIVE steps.
+#
+# 150 covers the left side with a little margin and matches the band validated
+# downstream (x 150-380). Being symmetric it crops to 362 on the right, ~18px more
+# than needed -- the price of a single floor. It costs ~35% of targets, which is why
+# a per-frame background subtraction (see helpers/artifacts.py) is the better fix:
+# it keeps those cells instead of cropping them.
+#
+# The 260804 and contrast-shift numbers genuinely disagree, so this is a floor set
+# by the worst session seen, not a rig constant. Detection may still widen it.
+ARTIFACT_MIN_CROP = 150
 
 # fallback crop applied when auto-detection finds no band (e.g. the sampled tiff
 # has no photostim frames). An int gives a symmetric px/side crop; a
