@@ -38,7 +38,7 @@ default_ops = {
     
     # custom settings
     # 'auto' -> bounds detected per-recording by helpers.artifacts.detect_artifact_bounds,
-    # then floored at s2p_cli.ARTIFACT_MIN_CROP px/side (currently 100) to cover the
+    # then floored at s2p_cli.ARTIFACT_MIN_CROP px/side (currently 150) to cover the
     # contaminated penumbra past the visible band.
     # (set a fixed tuple e.g. (100, 512-100) to override with a manual crop, which
     #  bypasses both detection and the floor)
@@ -80,6 +80,12 @@ voltage = {
     'sig_baseline': 10.,  # smoothing constant for gaussian filter
     'prctile_baseline': 8.,  # optional (whether to use a percentile baseline)
     'neucoeff': 0.7,  # neuropil coefficient
+
+    # Explicitly no crop. Set to 'auto' if this preset is ever run on the
+    # holography rig -- but note the floor in s2p_cli is enforced even when no
+    # band is detected, so 'auto' ALWAYS removes ARTIFACT_MIN_CROP px/side
+    # (currently 150 of a 512 frame per side). Do not enable it blindly.
+    'remove_artifacts': None,
 }
 
 spines = {
@@ -119,6 +125,12 @@ spines = {
     'sig_baseline': 10.,  # smoothing constant for gaussian filter
     'prctile_baseline': 8.,  # optional (whether to use a percentile baseline)
     'neucoeff': 0.7,  # neuropil coefficient
+
+    # Explicitly no crop. Set to 'auto' if this preset is ever run on the
+    # holography rig -- but note the floor in s2p_cli is enforced even when no
+    # band is detected, so 'auto' ALWAYS removes ARTIFACT_MIN_CROP px/side
+    # (currently 150 of a 512 frame per side). Do not enable it blindly.
+    'remove_artifacts': None,
 }
 
 register_only = {
@@ -126,6 +138,12 @@ register_only = {
     'reg_tif_chan2': True,
     'roidetect': False,
     'fast_disk': '/mnt/fast',
+
+    # Explicitly no crop. Set to 'auto' if this preset is ever run on the
+    # holography rig -- but note the floor in s2p_cli is enforced even when no
+    # band is detected, so 'auto' ALWAYS removes ARTIFACT_MIN_CROP px/side
+    # (currently 150 of a 512 frame per side). Do not enable it blindly.
+    'remove_artifacts': None,
 }
 
 # these settings are taken from run_s2p_8m.py
@@ -171,7 +189,11 @@ gcamp8m  = {
     # 'preclassify': 0., # apply classifier before signal extraction with a prob of 0.3
 
     # custom settings
-    # 'remove_artifacts': (100, 512-100)
+    # holography rig -> detect and crop the photostim edge bands. 'auto' is
+    # resolved in s2p_cli by detect_artifact_bounds, then floored at
+    # ARTIFACT_MIN_CROP px/side. Needs the lab suite2p fork (neurognome/suite2p);
+    # upstream MouseLand ignores the key and silently gives you uncropped data.
+    'remove_artifacts': 'auto',
 }
 
 red  = {
@@ -207,5 +229,9 @@ red  = {
     
     'spikedetect': False, 
     # custom settings
-    # 'remove_artifacts': (100, 512-100)
+    # holography rig -> detect and crop the photostim edge bands. 'auto' is
+    # resolved in s2p_cli by detect_artifact_bounds, then floored at
+    # ARTIFACT_MIN_CROP px/side. Needs the lab suite2p fork (neurognome/suite2p);
+    # upstream MouseLand ignores the key and silently gives you uncropped data.
+    'remove_artifacts': 'auto',
 }
