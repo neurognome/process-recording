@@ -53,6 +53,15 @@ import s2p_ops
 #
 # The 260804 and contrast-shift numbers genuinely disagree, so this is a floor set
 # by the worst session seen, not a rig constant. Detection may still widen it.
+#
+# REQUIRES the lab suite2p fork (neurognome/suite2p), which is what implements
+# ops['remove_artifacts'] -- read_tiff takes an x_crop_rng and tiff_to_binary passes
+# it (commits a466eb2, c949dcd). Upstream MouseLand suite2p has no such option and
+# silently ignores the key, so a clone pointed at upstream produces UNCROPPED data
+# with remove_artifacts sitting inertly in the saved ops.npy. That is exactly what
+# happened to the four contrast-shift recordings. If a session comes out with
+# ops['Lx'] == the full frame width while ops['remove_artifacts'] is set, check
+# `git remote -v` in the suite2p clone before anything else.
 ARTIFACT_MIN_CROP = 150
 
 # fallback crop applied when auto-detection finds no band (e.g. the sampled tiff
