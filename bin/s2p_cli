@@ -309,4 +309,17 @@ for g in group_idxs:
     # shutil.rmtree(temp_save_path)
 
     shutil.rmtree(ops['fast_disk']) # cleanup after yoself
+
+    # NWB: convert this run in the background (~/code/nwb-pipeline/bin/nwb-hook -> /mnt/data/nwb).
+    # Detached and non-fatal: processing never waits on it or fails because of it; a failed conversion
+    # is retried by the nightly sweep. NWB_HOOK=0 disables it.
+    nwb_hook = Path.home() / 'code' / 'nwb-pipeline' / 'bin' / 'nwb-hook'
+    if os.environ.get('NWB_HOOK', '1') != '0' and nwb_hook.exists():
+        try:
+            import subprocess
+            subprocess.Popen([str(nwb_hook), str(Path(save_path, 'suite2p'))], start_new_session=True,
+                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            print(f'NWB conversion started in the background ({nwb_hook})')
+        except Exception as e:
+            print(f'NWB hook not started: {e}')
 print('Finished!')
