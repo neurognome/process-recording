@@ -164,6 +164,7 @@ else:
         else:
             print('not an acceptable input! (press ctrl-C to exit)')
 
+mismatched_groups = []
 for g in group_idxs:
     epoch_folders = [pth[i] for i in g]
     epoch_names = [Path(epoch).stem for epoch in epoch_folders]
@@ -225,6 +226,24 @@ for g in group_idxs:
     # else: 
     #     print('Unable to get any red channel data.')
     #     is_dual_channel = False
+
+    # Every epoch must have been acquired like the first one: nchannels / nplanes below come from ONE tif and
+    # suite2p applies them to the whole run, so an epoch saved differently gets its frames assigned to the wrong
+    # channel / plane. Seen 2024-2026: a screen saved with channels [1 2] before 1-channel experiments (planes
+    # 0/2 then hold one slice, 1/3 another; slices 1/3 land in "red"), a single-plane epoch in a volume run.
+    acquired = {}
+    for d in data_path:
+        t = SItiffCore(sorted(glob(d + '/*.tif'))[0], backend='tifffile')
+        acquired[Path(d).name] = (t.nchannels, t.nplanes)
+    if len(set(acquired.values())) > 1:
+        print('\nERROR: these epochs were acquired with different channel / plane counts:')
+        for e, (c, p) in acquired.items():
+            print(f'    {e}: {c} channel(s), {p} plane(s)')
+        print('suite2p would process them all one way and assign frames to the wrong channel / plane.\n'
+              'Process them as separate runs, or make them match first (a screen saved with channels [1 2]:\n'
+              '~/code/nwb-pipeline/tools/strip_ch2_epoch.py <raw date dir> <epoch>). Skipping this group.\n')
+        mismatched_groups.append(epoch_names)
+        continue
 
     # setup s2p db
     # copy so per-group mutations (artifact bounds, fast_disk) don't leak across epochs
@@ -323,3 +342,5 @@ for g in group_idxs:
         except Exception as e:
             print(f'NWB hook not started: {e}')
 print('Finished!')
+if mismatched_groups:
+    sys.exit(f'Not processed (epochs acquired differently): {mismatched_groups}')
